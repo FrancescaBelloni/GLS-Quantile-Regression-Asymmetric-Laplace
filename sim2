@@ -1,0 +1,84 @@
+#  SIMULATE DATA FROM AR(1)
+#
+#  Description:
+#  This code snippet shows how to simulate data from a Gaussian
+#  autoregressive model (AR) of order 1 given by:
+#
+#   x(t) = alpha + beta * x(t-1) + epsilon(t)
+#
+#  with NID(0,sigma^2) innovations {epsilon(t)}.
+#
+#  Francisco Blasques 2019
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+## 1. Setup
+
+
+T=100;  # sample size
+alpha = 1;    # intercept parameter
+beta = 0.9;   # autoregressive parameter
+sigma = 0.1;  # standard error of innovations
+x1 = alpha/(1-beta) # define initial value for time series x
+
+
+epsilon = sigma*np.random.randn(T,1); # generate a vector of T random normal
+                                          # variables with variance sigma^2
+
+x = np.zeros((T,1)); # define vector of zeros of length T
+
+x[0,:] = x1
+
+
+for t in range(1, T):
+    x[t,:] = alpha + beta * x[t-1,:] + epsilon[t,:] # generate x(t) recursively
+
+print(x) # display the values of x
+
+
+'''f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+ax1.plot(x)
+ax1.set_title('data')
+ax2.hist(x,bins=20)
+plt.show() '''
+
+
+# Simulation of regression 
+T_2=100 
+gamma = 0.9
+delta = 0.5
+sigma = 0.1
+epsilon = sigma*np.random.randn(T_2,1)
+epsilont_1 = sigma*np.random.randn(T_2,1)
+y1 = 0
+
+y = np.zeros((T,1)); # define vector of zeros of length T
+y[0,:] = y1
+
+for t in range(1, T):
+    y[t,:] = gamma * x[t,:] + epsilon[t,:] + delta * epsilont_1[t-1,:] 
+
+print(y) 
+
+
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+#df = pd.DataFrame({'y': y, 'x': x})
+#df = pd.DataFrame({'X':x})
+#df['Y'] = pd.Series(y) 
+#listx = x.tolist()
+#listy = y.tolist()
+#df = pd.DataFrame({'rose': listy, 'blue': listx})
+
+# fit the model
+model = smf.quantreg(y, x).fit(q=0.7)
+ 
+# view model summary
+print(model.summary())
+            
