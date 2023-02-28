@@ -13,8 +13,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-## 1. Setup
 
+## 1. Setup
 
 T=100;  # sample size
 alpha = 1;    # intercept parameter
