@@ -15,26 +15,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 ## 1. Setup
-
 T=100;  # sample size
+df = pd.DataFrame(index=range(T), columns=['x', 'y'])
 alpha = 1;    # intercept parameter
 beta = 0.9;   # autoregressive parameter
 sigma = 0.1;  # standard error of innovations
 x1 = alpha/(1-beta) # define initial value for time series x
 
-
 epsilon = sigma*np.random.randn(T,1); # generate a vector of T random normal
                                           # variables with variance sigma^2
-
 x = np.zeros((T,1)); # define vector of zeros of length T
 
-x[0,:] = x1
-
+x[0,:] = x1 #initialise
 
 for t in range(1, T):
     x[t,:] = alpha + beta * x[t-1,:] + epsilon[t,:] # generate x(t) recursively
 
-print(x) # display the values of x
+#print(x) # display the values of x
 
 
 '''f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
@@ -42,7 +39,6 @@ ax1.plot(x)
 ax1.set_title('data')
 ax2.hist(x,bins=20)
 plt.show() '''
-
 
 # Simulation of regression 
 T_2=100 
@@ -57,9 +53,9 @@ y = np.zeros((T,1)); # define vector of zeros of length T
 y[0,:] = y1
 
 for t in range(1, T):
-    y[t,:] = gamma * x[t,:] + epsilon[t,:] + delta * epsilont_1[t-1,:] 
+    y[t,:] = y[t-1,:] + gamma * x[t,:] + epsilon[t,:] + delta * epsilont_1[t-1,:] 
 
-print(y) 
+#print(y) 
 
 
 
@@ -69,16 +65,28 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 
-#df = pd.DataFrame({'y': y, 'x': x})
-#df = pd.DataFrame({'X':x})
-#df['Y'] = pd.Series(y) 
-#listx = x.tolist()
-#listy = y.tolist()
-#df = pd.DataFrame({'rose': listy, 'blue': listx})
 
 # fit the model
-model = smf.quantreg(y, x).fit(q=0.7)
+#model = smf.quantreg(y, x).fit(q=0.7)
  
 # view model summary
-print(model.summary())
-            
+#print(model.summary())
+print(len(x))
+print(len(y))
+print(x.shape)
+print(y.shape)
+
+x = np.array(x).flatten
+y = np.array(y).flatten
+df = pd.DataFrame({'x_simulated': x, 'x_simulated': y}, index=(0, 100))
+
+
+print(df.head(3))
+
+ 
+# fit the model
+#model = smf.quantreg('x_simulated ~ x_simulated',
+                     #df).fit(q=0.7)
+ 
+# view model summary
+#print(model.summary())            
