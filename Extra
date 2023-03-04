@@ -1,0 +1,201 @@
+#  SIMULATE DATA FROM AR(1)
+#
+#  Description:
+#  This code snippet shows how to simulate data from a Gaussian
+#  autoregressive model (AR) of order 1 given by:
+#
+#   x(t) = alpha + beta * x(t-1) + epsilon(t)
+#
+#  with NID(0,sigma^2) innovations {epsilon(t)}.
+#
+#  Francisco Blasques 2019
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+## 1. Setup
+T=100;  # sample size
+df = pd.DataFrame(index=range(T), columns=['x', 'y'])
+alpha = 1;    # intercept parameter
+beta = 0.9;   # autoregressive parameter
+sigma = 0.1;  # standard error of innovations
+x1 = alpha/(1-beta) # define initial value for time series x
+
+epsilon = sigma*np.random.randn(T,1); # generate a vector of T random normal
+                                          # variables with variance sigma^2
+x = np.zeros((T,1)); # define vector of zeros of length T
+
+x[0,:] = x1 #initialise
+
+for t in range(1, T):
+    x[t,:] = alpha + beta * x[t-1,:] + epsilon[t,:] # generate x(t) recursively
+
+#print(x) # display the values of x
+
+
+'''f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+ax1.plot(x)
+ax1.set_title('data')
+ax2.hist(x,bins=20)
+plt.show() '''
+
+# Simulation of regression 
+T_2=100 
+gamma = 0.9
+delta = 0.5
+sigma = 0.1
+epsilon = sigma*np.random.randn(T_2,1)
+epsilont_1 = sigma*np.random.randn(T_2,1)
+y1 = 0
+
+y = np.zeros((T,1)); # define vector of zeros of length T
+y[0,:] = y1
+
+for t in range(1, T):
+    y[t,:] = y[t-1,:] + gamma * x[t,:] + epsilon[t,:] + delta * epsilont_1[t-1,:] 
+
+#print(y) 
+
+
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+
+# fit the model
+#model = smf.quantreg(y, x).fit(q=0.7)
+ 
+# view model summary
+#print(model.summary())
+print(len(x))
+print(len(y))
+print(x.shape)
+print(y.shape)
+
+x = np.array(x).flatten
+y = np.array(y).flatten
+df = pd.DataFrame({'x_simulated': x, 'x_simulated': y}, index=(0, 100))
+
+
+print(df.head(3))
+
+ 
+# fit the model
+#model = smf.quantreg('x_simulated ~ x_simulated',
+                     #df).fit(q=0.7)
+ 
+# view model summary
+#print(model.summary())         
+# 
+# 
+# 
+
+# generate data
+np.random.seed(123)
+T = 100
+y = np.zeros(T)
+x = np.random.randn(T)
+alpha = 1
+beta = 0.9
+gamma = 0.5
+theta = 0.1
+sigma = 0.1
+epsilon = sigma * np.random.randn(T)
+
+# simulate Y
+y[0] = alpha + gamma * x[0] + epsilon[0]
+for t in range(1, T):
+    y[t] = alpha + beta * y[t-1] + gamma * x[t] + epsilon[t] + theta * epsilon[t-1]
+
+# estimate alpha and beta
+y_lag = np.roll(y, 1)
+y_lag[0] = alpha
+X = np.column_stack((np.ones(T), y_lag, x))
+model = sm.OLS(y, X)
+results = model.fit()
+alpha_hat, beta_hat, gamma_hat = results.params
+
+print("Estimated parameters:")
+print("alpha_hat = {:.4f}".format(alpha_hat))
+print("beta_hat = {:.4f}".format(beta_hat))   
+
+
+# estimate alpha and beta
+y_lag = np.roll(y, 1)
+y_lag[0] = alpha
+X = np.column_stack((np.ones(T), y_lag, x))
+model = sm.OLS(y, X)
+results = model.fit()
+alpha_hat, beta_hat, gamma_hat = results.params
+
+print("Estimated parameters:")
+print("alpha_hat = {:.4f}".format(alpha_hat))
+print("beta_hat = {:.4f}".format(beta_hat))
+print("gamma_hat = {:.4f}".format(gamma_hat))
+
+# Estimate the parameters using GLS
+# Compute the residuals
+resid = y - X @ beta_hat
+# Compute the ACF of the residuals
+acf_resid, ci = sm.tsa.stattools.acf(resid, nlags=10, alpha=0.05)
+
+# Estimate the covariance parameters
+sigma2 = np.var(resid) * (1 - acf_resid[1])
+rho = acf_resid[1] / (1 - acf_resid[1])
+S = np.diag(sigma2 * np.ones(T)) + rho * np.diag(np.sqrt(sigma2[:-1] * sigma2[1:]), k=1) + rho * np.diag(np.sqrt(sigma2[:-1] * sigma2[1:]), k=-1)
+
+# Compute the GLS estimator of the coefficients
+beta_gls = np.linalg.inv(X.T @ np.linalg.inv(S) @ X) @ X.T @ np.linalg.inv(S) @ y
+
+# Print the parameter estimates
+print("alpha_hat = {:.4f}".format(beta_gls[0]))
+print("beta_hat = {:.4f}".format(beta_gls[1]))
+print("gamma_hat = {:.4f}".format(beta_gls[2]))
+print("theta_hat = {:.4f}".format(beta_gls[3]))
+
+
+
+
+################################ Autocorrelation of the residuals ##############################
+residuals_1 = quant_reg_1.resid # Calculate the residuals
+residuals_5 = quant_reg_5.resid # Calculate the residuals
+residuals_9 = quant_reg_9.resid # Calculate the residuals
+
+# Plot the autocorrelation function of the residuals for all three quantile regression models in one plot
+fig, ax = plt.subplots(3, 1, figsize=(8, 10))
+plot_acf(quant_reg_1.resid, ax=ax[0])
+ax[0].set_title('Autocorrelation of residuals (quantile level = 0.1)')
+plot_acf(quant_reg_5.resid, ax=ax[1])
+ax[1].set_title('Autocorrelation of residuals (quantile level = 0.5)')
+plot_acf(quant_reg_9.resid, ax=ax[2])
+ax[2].set_title('Autocorrelation of residuals (quantile level = 0.9)')
+plt.tight_layout()
+plt.show()
+
+#Autocorrelation fades away as the lags increase
+
+################################ GLS estimation of the parameters ##############################
+
+resid = y - X @ beta_hat# Compute the residuals
+
+acf_resid, ci = sm.tsa.stattools.acf(resid, nlags=10, alpha=0.05) # Compute the ACF of the residuals
+
+# Estimate the covariance parameters
+sigma2 = np.var(resid) * (1 - acf_resid[1])
+print(sigma2.shape, type(sigma2))
+sigma2_array = np.full(T, sigma2)
+rho = acf_resid[1] / (1 - acf_resid[1])
+S = np.diag(sigma2_array) + rho * np.diag(np.sqrt(sigma2_array[:-1] * sigma2_array[1:]), k=1) + rho * np.diag(np.sqrt(sigma2_array[:-1] * sigma2_array[1:]), k=-1)
+
+# Compute the GLS estimator of the coefficients
+beta_gls = np.linalg.inv(X.T @ np.linalg.inv(S) @ X) @ X.T @ np.linalg.inv(S) @ y
+
+# Print the parameter estimates
+print("alpha_hat = {:.4f}".format(beta_gls[0]))
+print("beta_hat = {:.4f}".format(beta_gls[1]))
+print("gamma_hat = {:.4f}".format(beta_gls[2]))
+print("theta_hat = {:.4f}".format(beta_gls[3]))
