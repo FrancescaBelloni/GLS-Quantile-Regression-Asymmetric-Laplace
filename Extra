@@ -199,3 +199,25 @@ print("alpha_hat = {:.4f}".format(beta_gls[0]))
 print("beta_hat = {:.4f}".format(beta_gls[1]))
 print("gamma_hat = {:.4f}".format(beta_gls[2]))
 print("theta_hat = {:.4f}".format(beta_gls[3]))
+
+
+
+
+
+################################'Generate Y as AR(1)'##############################
+################################ # Yt = α + βYt-1 + εt
+
+T_y=100;  # sample size
+alpha_y = 3;    # intercept parameter
+beta_y = 0.4;   # autoregressive parameter
+sigma_y = 0.3;  # standard error of innovations
+y1 = alpha_y/(1-beta_y) # define initial value for time series x
+
+epsilon_y = sigma_y*np.random.randn(T_y,1)
+df['epsilon_y'] = epsilon_y
+
+for j in range(0, T-1):
+    df.iloc[j+1,1] = alpha_y + beta_y * df.iloc[j,1] + epsilon_y[j+1] # generate X(t) recursively
+    # Yt = α + βYt-1 + εt
+
+print(df)
