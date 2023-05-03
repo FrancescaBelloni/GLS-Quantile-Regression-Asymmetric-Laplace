@@ -221,3 +221,56 @@ for j in range(0, T-1):
     # Yt = α + βYt-1 + εt
 
 print(df)
+
+
+
+
+
+
+''' 03/05 liklihood of both OLS and GlS'''
+def ols_gls_estimation_liklihood2(df):
+    df = df.astype('float64') # convert data to float64 data type
+    x = df['x'].values # extract data
+    y = df['y'].values
+    epsilon_y = df['epsilon_y'].values
+    T = len(y)
+    y_lag = np.roll(y, 1)
+    y_lag[0] = 0
+    X = np.column_stack((np.ones_like(x), y_lag, x))
+    
+    #beta_hat = np.linalg.inv(X.T @ X) @ X.T @ y  # OLS estimation of the parameters
+    
+    ε = y - X @ beta_hat
+    ε = ε.reshape((-1, 1))
+    ε_lag = np.roll(ε, 1)
+    ε_lag[0] = 0
+    ε_lag = ε_lag.reshape((-1, 1))
+    theta_hat = np.linalg.inv(ε.T @ ε_lag) @ ε_lag.T @ ε
+    
+    def neg_log_likelihood_OLS(X, y):
+        T  = len(y)
+        resid = y - X @ beta_hat
+        return T/2 * np.log(np.linalg.det(S)) + 1/2 * resid.T @ np.linalg.inv(S) @ resid
+    beta_guess = np.zeros(X.shape[1]) # initial guess for beta
+    res = optimize.minimize(neg_log_likelihood_OLS, beta_hat, args=(X, y, S)) # minimize the negative log-likelihood
+    beta_gls = res.x # the estimated beta is in res.x
+
+    acf_resid, ci = sm.tsa.stattools.acf(ε, nlags=10, alpha=0.05)
+    sigma2 = np.var(ε) * (1 - acf_resid[1])
+    sigma2_array = np.full(T, sigma2)
+    rho = acf_resid[1] / (1 - acf_resid[1])
+    S = np.diag(sigma2_array) + rho * np.diag(np.sqrt(sigma2_array[:-1] * sigma2_array[1:]), k=1) + rho * np.diag(np.sqrt(sigma2_array[:-1] * sigma2_array[1:]), k=-1)
+    
+    def neg_log_likelihood_GLS(beta_hat, X, y, S):
+        T  = len(y)
+        resid = y - X @ beta_hat
+        return T/2 * np.log(np.linalg.det(S)) + 1/2 * resid.T @ np.linalg.inv(S) @ resid
+    beta_guess = np.zeros(X.shape[1]) # initial guess for beta
+    res = optimize.minimize(neg_log_likelihood_GLS, beta_hat, args=(X, y, S)) # minimize the negative log-likelihood
+    beta_gls = res.x # the estimated beta is in res.x
+
+    print("GLS parameter estimates:")
+    print("alpha_gls = {:.4f}".format(beta_gls[0]))
+    print("beta_gls = {:.4f}".format(beta_gls[1]))
+    print("gamma_gls = {:.4f}".format(beta_gls[2]))
+    #print("theta_gls = {:.4f}".format(theta_gls[0, 0]))
